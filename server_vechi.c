@@ -178,15 +178,24 @@ int main ()
 				if (strcmp("Stop", condition) == 0){
 					printf ("S-a atins numarul maxim de clienti.\n");
 					
-					if (write (client, "Stop", 5) <= 0)
-					{
-						perror ("[server]Eroare la write() catre client.\n");
-						continue;		/* continuam sa ascultam */
+					for(int i = 0; i<3; i++){
+						if (write (client, "!!!!", 5) <= 0)
+						{
+							perror ("[server]Eroare la write() catre client.\n");
+							continue;		/* continuam sa ascultam */
+						}
+						else
+							printf ("[server]Conditie trimisa.\n");
+						sleep(3);
 					}
-					else
-						printf ("[server]Conditie trimisa.\n");
-
-
+					if (write (client, "Stop", 5) <= 0)
+						{
+							perror ("[server]Eroare la write() catre client.\n");
+							continue;		/* continuam sa ascultam */
+						}
+						else
+							printf ("[server]Conditie trimisa.\n");
+					close(pipefd[listener][READ]);
 					close (client);
 					exit(0);
 				}
