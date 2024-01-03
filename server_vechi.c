@@ -14,6 +14,8 @@
 
 /* portul folosit */
 #define PORT 2024
+#define READ 0
+#define WRITE 1
 
 /* codul de eroare returnat de anumite apeluri */
 extern int errno;
@@ -28,9 +30,10 @@ int main ()
 	char *users[] = {"Terry", "Jom"};
 	int boolean = 0;
 	int clients = 0;
-	int pipefd[2];
+	int pipefd[4][2];
 	pid_t pid;
 	char condition[4];
+	int listener = 0;
 
     /* crearea unui socket */
     if ((sd = socket (AF_INET, SOCK_STREAM, 0)) == -1)
@@ -39,9 +42,11 @@ int main ()
     	return errno;
     }
 
-	if (pipe(pipefd) == -1) {
-        perror("Eroare la pipe");
-        return errno;
+	for (int i = 0; i < 4; i++) {
+        if (pipe(pipefd[i]) == -1) {
+            perror("Pipe creation failed");
+            exit(EXIT_FAILURE);
+        }
     }
 
     /* pregatirea structurilor de date */
@@ -76,6 +81,8 @@ int main ()
     	int client;
     	int length = sizeof (from);
 
+		printf("S-au conectat pana acum %d clienti\n", clients);
+
     	printf ("[server]Asteptam la portul %d...\n",PORT);
     	fflush (stdout);
 
@@ -94,17 +101,18 @@ int main ()
     		close(client);
     		continue;
     	} else if (pid > 0) {
+			clients++;
+			listener++;
     		// parinte
     		close(client);
-			if (clients >= 1){
-				close(pipefd[0]);
+			if (clients >= 4){
+				for(int i = 0; i<4; i++){
+					close(pipefd[i][READ]);
 
-				write(pipefd[1], "Stop", 4);
+					write(pipefd[i][WRITE], "Stop", 4);
 
-        		close(pipefd[1]);
-			}
-			else {
-				clients++;
+        			close(pipefd[i][WRITE]);
+				}
 			}
     		while(waitpid(-1,NULL,WNOHANG));
     		continue;
@@ -140,7 +148,7 @@ int main ()
 
 			if (boolean == 1)
 			{
-				 close(pipefd[1]);
+				close(pipefd[listener][WRITE]);
 				/*pregatim mesajul de raspuns */
 				bzero(msgrasp,100);
 				strcat(msgrasp,"Hello ");
@@ -159,10 +167,10 @@ int main ()
 					printf ("[server]Mesajul a fost trasmis cu succes.\n");
 				
 				while(strcmp("Stop", condition) != 0){
-					read(pipefd[0], condition, sizeof(condition));
+					read(pipefd[listener][READ], condition, sizeof(condition));
 					condition[4] = '\0';
-					sleep(1);
-					printf("%s", condition);
+					sleep(10);
+					printf("Acesta este conditia: %s", condition);
 					printf("Sunt in while.\n");
 				}
 				/* am terminat cu acest client, inchidem conexiunea */
