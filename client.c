@@ -82,17 +82,17 @@ int main (int argc, char *argv[])
   /* afisam mesajul primit */
   printf ("[client]Mesajul primit este: %s\n", msg);
 
-  if (read (sd, condition, 5) < 0)
+  while(strcmp("Stop", condition) != 0){
+    if (read (sd, condition, 5) < 0)
     {
       perror ("[client]Eroare la read() de la server.\n");
       return errno;
     }
-  printf ("[client]Mesajul primit este: %s\n", condition);
+    printf ("[client]Mesajul primit este: %s\n", condition);
+    condition[4] = '\0';
+  }
 
   /* inchidem conexiunea, am terminat */
-  while (strcmp(condition, "Stop") != 0){
-      sleep(1);
-  }
     close (sd);
   
   
