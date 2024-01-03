@@ -20,6 +20,15 @@
 /* codul de eroare returnat de anumite apeluri */
 extern int errno;
 
+void switch_bila(int *bila){
+	if (*bila == 1){
+		*bila = 0;
+	}
+	else{
+		*bila = 1;
+	}
+}
+
 int main ()
 {
     struct sockaddr_in server;	// structura folosita de server
@@ -34,6 +43,7 @@ int main ()
 	pid_t pid;
 	char condition[4];
 	int listener = 0;
+	int bila = 1;
 
     /* crearea unui socket */
     if ((sd = socket (AF_INET, SOCK_STREAM, 0)) == -1)
@@ -105,6 +115,10 @@ int main ()
 			listener++;
     		// parinte
     		close(client);
+
+			switch_bila(&bila);
+			printf("Bila este: %d\n", bila);
+
 			if (clients >= 4){
 				for(int i = 0; i<4; i++){
 					close(pipefd[i][READ]);
@@ -169,9 +183,7 @@ int main ()
 				while(strcmp("Stop", condition) != 0){
 					read(pipefd[listener][READ], condition, sizeof(condition));
 					condition[4] = '\0';
-					sleep(10);
-					printf("Acesta este conditia: %s", condition);
-					printf("Sunt in while.\n");
+					sleep(1);
 				}
 				/* am terminat cu acest client, inchidem conexiunea */
 				
@@ -188,16 +200,31 @@ int main ()
 							printf ("[server]Conditie trimisa.\n");
 						sleep(3);
 					}
-					if (write (client, "Stop", 5) <= 0)
-						{
-							perror ("[server]Eroare la write() catre client.\n");
-							continue;		/* continuam sa ascultam */
+					if (bila == 0){
+						if (write (client, "Stop", 5) <= 0)
+							{
+								perror ("[server]Eroare la write() catre client.\n");
+								continue;		/* continuam sa ascultam */
+							}
+							else
+								printf ("[server]Conditie trimisa.\n");
+						close(pipefd[listener][READ]);
+						close (client);
+						exit(0);
+					}
+					else{
+						if (write (client, "Inca aici", 10) <= 0)
+							{
+								perror ("[server]Eroare la write() catre client.\n");
+								continue;		/* continuam sa ascultam */
+							}
+							else
+								printf ("[server]Conditie trimisa.\n");
+						close(pipefd[listener][READ]);
+						while(1){
+							sleep(10);
 						}
-						else
-							printf ("[server]Conditie trimisa.\n");
-					close(pipefd[listener][READ]);
-					close (client);
-					exit(0);
+					}
 				}
 			}
 			else{
