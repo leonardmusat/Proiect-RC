@@ -193,6 +193,7 @@ int main ()
 					for(int i = 0; i<3; i++){
 						if (write (client, "!!!!", 5) <= 0)
 						{
+							sleep(1);
 							perror ("[server]Eroare la write() catre client.\n");
 							continue;		/* continuam sa ascultam */
 						}

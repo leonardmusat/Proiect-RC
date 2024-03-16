@@ -80,16 +80,18 @@ int main (int argc, char *argv[])
       return errno;
     }
   /* afisam mesajul primit */
-  printf ("[client]Mesajul primit este: %s\n", msg);
+    printf ("[client]Mesajul primit este: %s\n", msg);
 
-  while(strcmp("Stop", condition) != 0){
-    if (read (sd, condition, 5) < 0)
-    {
-      perror ("[client]Eroare la read() de la server.\n");
-      return errno;
+  if (strcmp(msg,"Login Denied") != 0){
+    while(strcmp("Stop", condition) != 0){
+      if (read (sd, condition, 5) < 0)
+      {
+        perror ("[client]Eroare la read() de la server.\n");
+        return errno;
+      }
+      printf ("[client]Mesajul primit este: %s\n", condition);
+      condition[4] = '\0';
     }
-    printf ("[client]Mesajul primit este: %s\n", condition);
-    condition[4] = '\0';
   }
 
   /* inchidem conexiunea, am terminat */
